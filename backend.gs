@@ -1,109 +1,167 @@
 
-/**
- * BACKEND: Google Apps Script (GAS)
- * Copia este código en un nuevo proyecto de Google Apps Script (script.google.com)
- * Asegúrate de tener las pestañas "Productos" y "Pedidos" en tu Google Sheet.
- */
-
+/*************************************************************
+ * CONSTANTES Y CONFIGURACIÓN
+ *************************************************************/
 const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-const OWNER_EMAIL = "tu-email@ejemplo.com"; // CAMBIAR POR TU EMAIL
+const PRODUCTOS_SHEET_NAME = "Productos";
+const PEDIDOS_SHEET_NAME = "Pedidos";
+const ADMIN_EMAIL_ADDRESS = "admin@delicias.cl";
 
-function doGet(e) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Productos");
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const rows = data.slice(1);
-  
-  const products = rows.map(row => {
-    let obj = {};
-    headers.forEach((header, i) => {
-      obj[header] = row[i];
-    });
-    return obj;
-  });
-  
-  return ContentService.createTextOutput(JSON.stringify(products))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
+/*************************************************************
+ * AUTENTICACIÓN Y AUTORIZACIÓN
+ *************************************************************/
+function getAuthenticatedUser(token) {
+  if (!token) throw new Error("Acceso denegado: No se proporcionó token.");
   try {
-    const data = JSON.parse(e.postData.contents);
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Pedidos");
-    
-    const pedidoId = "ORD-" + Math.floor(Math.random() * 1000000);
-    const fecha = new Date();
-    
-    // Columnas: fecha, id_pedido, cliente_nombre, cliente_email, direccion, detalle_json, total, estado
-    sheet.appendRow([
-      fecha,
-      pedidoId,
-      data.cliente_nombre,
-      data.cliente_email,
-      data.direccion,
-      data.detalle_json,
-      data.total,
-      "Pendiente"
-    ]);
-    
-    // Enviar Email al dueño
-    sendOrderEmail(data, pedidoId);
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      message: "Pedido recibido correctamente",
-      id: pedidoId
-    })).setMimeType(ContentService.MimeType.JSON);
-    
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    const response = UrlFetchApp.fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}`);
+    const payload = JSON.parse(response.getContentText());
+    if (payload.aud !== Session.getScriptId()) throw new Error("Acceso denegado: Token no válido.");
+    return {
+      email: payload.email,
+      nombre: payload.name,
+      isAdmin: payload.email.toLowerCase() === ADMIN_EMAIL_ADDRESS.toLowerCase()
+    };
+  } catch (e) {
+    throw new Error(`Acceso denegado: ${e.message}`);
   }
 }
 
-function sendOrderEmail(order, id) {
-  const items = JSON.parse(order.detalle_json);
-  let tableRows = items.map(item => `
-    <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.nombre}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${(item.precio * item.quantity).toFixed(2)}</td>
-    </tr>
-  `).join('');
+/*************************************************************
+ * HELPERS
+ *************************************************************/
+const getSheetData = (sheetName) => {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(sheetName);
+  const data = sheet.getDataRange().getValues();
+  const headers = data.shift();
+  return { sheet, data, headers };
+};
 
-  const htmlBody = `
-    <div style="font-family: sans-serif; color: #1C1917; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-      <h2 style="color: #EA580C; font-size: 24px;">¡Nuevo Pedido Recibido!</h2>
-      <p><strong>ID de Pedido:</strong> ${id}</p>
-      <p><strong>Cliente:</strong> ${order.cliente_nombre} (${order.cliente_email})</p>
-      <p><strong>Dirección:</strong> ${order.direccion}</p>
-      <p><strong>Notas:</strong> ${order.notas || 'Sin notas'}</p>
-      
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-          <tr style="background-color: #FAFAF9;">
-            <th style="text-align: left; padding: 10px;">Producto</th>
-            <th style="text-align: center; padding: 10px;">Cant.</th>
-            <th style="text-align: right; padding: 10px;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" style="padding: 10px; text-align: right; font-weight: bold;">TOTAL:</td>
-            <td style="padding: 10px; text-align: right; font-weight: bold; color: #EA580C;">$${order.total.toFixed(2)}</td>
-          </tr>
-        </tfoot>
-      </table>
-      <p style="margin-top: 30px; font-size: 12px; color: #666;">Enviado desde Delicias Los Volcanes App</p>
-    </div>
-  `;
-  
-  GmailApp.sendEmail(OWNER_EMAIL, "Nuevo Pedido: " + id, "", {
-    htmlBody: htmlBody
+const rowsToObjects = (headers, rows) => {
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((header, i) => obj[header] = row[i]);
+    return obj;
   });
+};
+
+/*************************************************************
+ * LÓGICA DE NEGOCIO (API)
+ *************************************************************/
+const API = {
+  // --- Acciones Públicas ---
+  getProducts: () => {
+    const { data, headers } = getSheetData(PRODUCTOS_SHEET_NAME);
+    return rowsToObjects(headers, data).filter(p => p.stock > 0 && p.nombre);
+  },
+
+  // --- Acciones de Usuario Autenticado ---
+  createOrder: (data, user) => {
+    const { items, total } = data;
+    if (!items || !Array.isArray(items) || items.length === 0 || typeof total !== 'number') {
+      throw new Error("Datos del pedido no válidos.");
+    }
+    const { sheet } = getSheetData(PEDIDOS_SHEET_NAME);
+    const orderId = "ORD-" + Utilities.getUuid();
+    sheet.appendRow([new Date(), orderId, user.nombre, user.email, JSON.stringify(items), total, "Pendiente"]);
+    return { status: "success", message: "Pedido creado", orderId };
+  },
+
+  getOrders: (data, user) => {
+    const { data, headers } = getSheetData(PEDIDOS_SHEET_NAME);
+    const emailIndex = headers.indexOf("cliente_email");
+    const userOrders = data.filter(row => row[emailIndex] === user.email);
+    return rowsToObjects(headers, userOrders);
+  },
+  
+  // --- Acciones de Administrador ---
+  getAllOrders: (data, user) => {
+    if (!user.isAdmin) throw new Error("Acceso denegado.");
+    const { data, headers } = getSheetData(PEDIDOS_SHEET_NAME);
+    return rowsToObjects(headers, data);
+  },
+
+  updateOrderStatus: (data, user) => {
+    if (!user.isAdmin) throw new Error("Acceso denegado.");
+    const { orderId, status } = data;
+    if (!orderId || !status) throw new Error("Datos no válidos.");
+
+    const { sheet, data: rows, headers } = getSheetData(PEDIDOS_SHEET_NAME);
+    const idIndex = headers.indexOf("id_pedido");
+    const statusIndex = headers.indexOf("estado");
+    const rowIndex = rows.findIndex(row => row[idIndex] == orderId);
+
+    if (rowIndex === -1) throw new Error("Pedido no encontrado.");
+    sheet.getRange(rowIndex + 2, statusIndex + 1).setValue(status);
+    return { status: "success", message: "Estado del pedido actualizado." };
+  },
+
+  saveProduct: (data, user) => {
+    if (!user.isAdmin) throw new Error("Acceso denegado.");
+    const { product } = data;
+    if (!product || !product.nombre) throw new Error("Datos de producto no válidos.");
+    
+    const { sheet, data: rows, headers } = getSheetData(PRODUCTOS_SHEET_NAME);
+    const idIndex = headers.indexOf("id");
+
+    if (product.id) { // Actualizar producto existente
+      const rowIndex = rows.findIndex(row => row[idIndex] == product.id);
+      if (rowIndex === -1) throw new Error("Producto no encontrado para actualizar.");
+      const values = headers.map(header => product[header] || "");
+      sheet.getRange(rowIndex + 2, 1, 1, headers.length).setValues([values]);
+      return { status: "success", message: "Producto actualizado." };
+    } else { // Crear nuevo producto
+      const newId = "PROD-" + Utilities.getUuid();
+      product.id = newId;
+      const values = headers.map(header => product[header] || "");
+      sheet.appendRow(values);
+      return { status: "success", message: "Producto creado.", newId };
+    }
+  },
+
+  deleteProduct: (data, user) => {
+    if (!user.isAdmin) throw new Error("Acceso denegado.");
+    const { productId } = data;
+    if (!productId) throw new Error("ID de producto no válido.");
+
+    const { sheet, data: rows, headers } = getSheetData(PRODUCTOS_SHEET_NAME);
+    const idIndex = headers.indexOf("id");
+    const rowIndex = rows.findIndex(row => row[idIndex] == productId);
+
+    if (rowIndex === -1) throw new Error("Producto no encontrado para eliminar.");
+    sheet.deleteRow(rowIndex + 2);
+    return { status: "success", message: "Producto eliminado." };
+  }
+};
+
+/*************************************************************
+ * ENRUTADOR PRINCIPAL
+ *************************************************************/
+const handleRequest = (e) => {
+  try {
+    const action = e.parameter.action || (e.postData && JSON.parse(e.postData.contents).action);
+    const data = e.postData ? JSON.parse(e.postData.contents) : {};
+    
+    if (action === "getProducts") {
+      return API.getProducts();
+    }
+    
+    const user = getAuthenticatedUser(data.token);
+    if (API[action]) {
+      return API[action](data, user);
+    } else {
+      throw new Error("Acción no válida.");
+    }
+  } catch (error) {
+    return { status: "error", message: `Error del servidor: ${error.message}` };
+  }
+};
+
+function doGet(e) {
+  const response = handleRequest(e);
+  return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const response = handleRequest(e);
+  return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
 }
