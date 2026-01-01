@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delicias Los Volcanes | Galletas de Autor en Puerto Montt</title>
+    <meta name="description" content="Descubre la erupción de sabor de nuestras galletas artesanales de autor. Horneadas diariamente en Puerto Montt con técnica profesional internacional.">
+    <meta name="author" content="arem4n">
+    
+    <!-- OpenGraph -->
+    <meta property="og:title" content="Delicias Los Volcanes | Galletas de Autor">
+    <meta property="og:description" content="Galletas artesanales de calidad profesional. Pedidos frescos en Puerto Montt.">
+    <meta property="og:image" content="https://i.postimg.cc/BnXV2rjG/Volcan-de-merengue-erupcion-de-mantequilla-choco.png">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/CKMHjDPz/Delicias-20251231-164022-0000.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            brown: '#3E2723', // Chocolate
+                            gold: '#FFB300',  // Dorado
+                            cream: '#FCFAF7', // Crema más cálido
+                            dark: '#21130F',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'cart-bump': 'cart-bump 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67)',
+                    },
+                    keyframes: {
+                        'cart-bump': {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.2)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: #FCFAF7;
+            color: #3E2723;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+        /* Textura de grano sutil */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 50;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
+            text-wrap: balance;
+        }
+        .appetizing-shadow {
+            box-shadow: 0 20px 40px -15px rgba(62, 39, 35, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #3E2723; }
+        ::-webkit-scrollbar-thumb { background: #FFB300; border-radius: 10px; border: 2px solid #3E2723; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
