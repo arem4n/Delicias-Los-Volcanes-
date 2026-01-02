@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product, CartItem } from '../types';
 
 interface CartContextType {
@@ -15,15 +15,27 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // El estado del carrito ahora es puramente efímero y se gestiona en memoria.
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('delicias_cart');
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Error parsing cart", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('delicias_cart', JSON.stringify(cart));
+  }, [cart]);
 
   const addToCart = useCallback((product: Product) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        // La validación de stock ahora es una salvaguarda del lado del cliente;
-        // la verdadera validación ocurrirá en el backend al crear el pedido.
         if (existing.quantity >= product.stock) return prev;
         
         return prev.map(item => 
@@ -56,13 +68,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart(prev => prev.map(item => {
       if (item.id === productId) {
         const newQty = item.quantity + delta;
-        // Permitimos que la cantidad sea 0 temporalmente, se filtrará después.
         if (newQty < 0) return item;
-        if (newQty > item.stock) return { ...item, quantity: item.stock }; // Corregir al máximo stock
+        if (newQty > item.stock) return item;
         return { ...item, quantity: newQty };
       }
       return item;
-    }).filter(item => item.quantity > 0)); // Eliminar productos con cantidad 0
+    }).filter(item => item.quantity > 0));
   }, []);
 
   const clearCart = useCallback(() => {
@@ -80,6 +91,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) throw new Error("useCart debe ser utilizado dentro de un CartProvider");
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };
