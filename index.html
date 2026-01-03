@@ -4,15 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delicias Los Volcanes | Galletas de Autor en Puerto Montt</title>
-    <meta name="description" content="Descubre la erupción de sabor de nuestras galletas artesanales de autor.">
-    <meta name="author" content="arem4n">
+    <title>Delicias Los Volcanes | Galletas de Autor</title>
+    <meta name="description" content="Erupción de sabor artesanal en Puerto Montt. Diseñado por arem4n.">
     
     <link rel="icon" type="image/png" href="https://i.postimg.cc/CKMHjDPz/Delicias-20251231-164022-0000.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800;900&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -22,13 +21,14 @@
                         brand: {
                             brown: '#3E2723',
                             gold: '#FFB300',
-                            cream: '#FCFAF7',
-                            dark: '#21130F',
+                            cream: '#FDFCF9',
+                            dark: '#261411',
                         }
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         display: ['Poppins', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
                     }
                 }
             }
@@ -37,39 +37,60 @@
     <style>
         html { scroll-behavior: smooth; }
         body {
-            background-color: #FCFAF7;
+            background-color: #FDFCF9;
             color: #3E2723;
             font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        body::before {
-            content: "";
+        
+        .grain-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
-            opacity: 0.4;
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+            opacity: 0.05;
             pointer-events: none;
-            z-index: 50;
+            z-index: 9999;
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #FFB300; border-radius: 10px; }
+
+        .heading-main {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+        }
+        
+        .heading-accent {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
     "vite": "https://esm.sh/vite@^7.3.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
   }
 }
 </script>
 </head>
-<body>
+<body class="custom-scrollbar">
+    <div class="grain-overlay"></div>
     <div id="root"></div>
-    <!-- Vite inyectará automáticamente los scripts aquí durante la construcción -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

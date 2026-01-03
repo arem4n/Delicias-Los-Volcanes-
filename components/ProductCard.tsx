@@ -27,20 +27,20 @@ export const ProductCard = memo(({ product }: Props) => {
   };
 
   return (
-    <div className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl border border-stone-100 transition-all duration-500 hover:-translate-y-2 hover:border-brand-gold/30 flex flex-col h-full relative z-10">
-      <div className="relative aspect-[4/5] overflow-hidden">
+    <div className="group bg-white rounded-[3rem] overflow-hidden shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_40px_80px_-20px_rgba(44,27,24,0.15)] border border-stone-100 transition-all duration-700 hover:-translate-y-4 hover:border-brand-gold/30 flex flex-col h-full relative z-10">
+      <div className="relative aspect-[4/5] overflow-hidden bg-brand-cream">
         <img 
           src={product.imagen_url} 
           alt={product.nombre}
           loading="lazy"
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${(isOutOfStock || isMaxedInCart) ? 'grayscale opacity-60' : ''}`}
+          className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 ${(isOutOfStock || isMaxedInCart) ? 'grayscale opacity-40' : ''}`}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-brown/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-brown/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
         {isLowStock && !isOutOfStock && (
-          <div className="absolute top-4 left-4 z-10 animate-in fade-in zoom-in">
-            <span className="bg-brand-gold text-brand-brown px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg border border-white/20">
-              <AlertTriangle size={10} strokeWidth={3} /> {product.stock} disponibles
+          <div className="absolute top-6 left-6 z-10">
+            <span className="bg-brand-gold text-brand-brown px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl border border-white/30 backdrop-blur-sm">
+              <AlertTriangle size={12} strokeWidth={3} /> {product.stock} piezas
             </span>
           </div>
         )}
@@ -49,52 +49,52 @@ export const ProductCard = memo(({ product }: Props) => {
           <button
             onClick={handleAddToCart}
             aria-label={`Añadir ${product.nombre} al carrito`}
-            className={`absolute bottom-6 right-6 p-5 rounded-2xl shadow-2xl transform translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-90 border border-white/20 z-20 ${
-              justAdded ? 'bg-green-500 text-white translate-y-0 opacity-100' : 'bg-brand-gold text-brand-brown hover:bg-brand-brown hover:text-brand-gold'
+            className={`absolute bottom-8 right-8 p-6 rounded-[1.5rem] shadow-2xl transform translate-y-24 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hover:scale-110 active:scale-95 border border-white/20 z-20 ${
+              justAdded ? 'bg-green-500 text-white translate-y-0 opacity-100' : 'bg-brand-brown text-brand-gold hover:bg-brand-dark'
             }`}
           >
-            {justAdded ? <Check size={24} strokeWidth={3} className="animate-in zoom-in" /> : <Plus size={24} strokeWidth={3} />}
+            {justAdded ? <Check size={24} strokeWidth={3} className="animate-[zoom-in_0.3s_ease-out]" /> : <Plus size={24} strokeWidth={3} />}
           </button>
         )}
         
         {(isOutOfStock || isMaxedInCart) && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-brand-brown/95 text-brand-cream px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 border border-brand-gold/40 backdrop-blur-sm">
-              <Ban size={14} /> {isOutOfStock ? 'Agotado' : 'Sin stock'}
+            <span className="bg-brand-brown/90 text-brand-cream px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 border border-brand-gold/40 backdrop-blur-xl">
+              <Ban size={16} /> {isOutOfStock ? 'Sold Out' : 'Sin Stock'}
             </span>
           </div>
         )}
       </div>
       
-      <div className="p-7 flex flex-col flex-1">
-        <div className="flex justify-between items-start mb-4 gap-4">
-          <h3 className="text-xl font-bold text-brand-brown leading-tight group-hover:text-brand-gold transition-colors font-display">
+      <div className="p-10 flex flex-col flex-1">
+        <div className="flex flex-col mb-6">
+          <h3 className="text-2xl font-bold text-brand-brown leading-none group-hover:text-brand-gold transition-colors font-display uppercase tracking-tight mb-4">
             {product.nombre}
           </h3>
-          <span className="font-black text-brand-gold whitespace-nowrap text-2xl tracking-tighter">
+          <span className="font-black text-brand-gold text-3xl tracking-tighter">
             ${product.precio.toLocaleString('es-CL')}
           </span>
         </div>
         
-        <p className="text-stone-500 text-sm mb-8 line-clamp-2 font-light leading-relaxed flex-1">
-          {product.descripcion}
+        <p className="text-stone-400 text-base mb-10 line-clamp-2 font-light leading-relaxed flex-1 italic">
+          "{product.descripcion}"
         </p>
         
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isMaxedInCart}
-          className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-2 transition-all duration-300 flex items-center justify-center gap-2 ${
+          className={`w-full py-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] border-2 transition-all duration-500 flex items-center justify-center gap-3 ${
             (isOutOfStock || isMaxedInCart)
             ? 'border-stone-100 text-stone-300 cursor-not-allowed' 
             : justAdded 
               ? 'bg-green-500 border-green-500 text-white'
-              : 'border-brand-brown/10 text-brand-brown hover:bg-brand-brown hover:text-brand-gold hover:border-brand-brown hover:scale-[1.03] shadow-sm active:scale-95'
+              : 'border-brand-brown/10 text-brand-brown hover:bg-brand-brown hover:text-brand-gold hover:border-brand-brown shadow-sm active:scale-[0.98]'
           }`}
         >
-          {isOutOfStock ? 'No disponible' : isMaxedInCart ? 'Sin más stock' : justAdded ? (
-            <><Check size={16} strokeWidth={3} /> ¡Añadido!</>
+          {isOutOfStock ? 'No Disponible' : isMaxedInCart ? 'Límite alcanzado' : justAdded ? (
+            <><Check size={18} strokeWidth={3} /> Añadido</>
           ) : (
-            <><ShoppingCart size={16} /> Agregar al Pedido</>
+            <><ShoppingCart size={18} /> Pedir Ahora</>
           )}
         </button>
       </div>
